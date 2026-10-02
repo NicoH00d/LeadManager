@@ -1,0 +1,20 @@
+# Dependencias
+node_modules/
+
+# Supabase CLI (estado local)
+supabase/.temp/
+supabase/.branches/
+
+# Secretos
+.env
+.env.*
+!.env.example
+supabase/functions/.env
+
+# Configuración local de Claude Code
+.claude/settings.local.json
+
+# Sistema / editor
+.DS_Store
+Thumbs.db
+*.log
