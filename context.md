@@ -117,6 +117,13 @@ Métricas a seguir: tasa de conversión lead → pago, tiempo de respuesta, % de
 - **Bandeja humana:** Chatwoot conectado a la API de WhatsApp.
 - **Esquema:** [supabase/migrations/20261001000000_init.sql](supabase/migrations/20261001000000_init.sql).
 - **Supabase CLI:** instalada como dependencia de desarrollo (`npx supabase ...`).
+- **LLM:** Claude (`claude-haiku-4-5` por ahora para ahorrar costos; se cambia con `LLM_MODEL` a `claude-sonnet-5-5` u `claude-opus-5-5`), con respuesta en JSON estructurado.
+- **Transcripción de audios:** OpenAI (`gpt-4o-mini-transcribe`), porque Claude no procesa audio.
+- **Edge Functions:**
+  - [whatsapp-webhook](supabase/functions/whatsapp-webhook/index.ts): recibe mensajes, guarda media, transcribe, agrupa y responde.
+  - [procesar-pendientes](supabase/functions/procesar-pendientes/index.ts): red de seguridad cada minuto vía `pg_cron`.
+  - Lógica compartida en [supabase/functions/_shared/](supabase/functions/_shared/) (prompt del bot en `bot.ts`).
+- **Secretos:** solo en Supabase (`npx supabase secrets set`); ver [.env.example](supabase/functions/.env.example). El repo es público.
 
 ```
 WhatsApp (Meta) ──webhook──► Supabase Edge Function
@@ -135,6 +142,8 @@ WhatsApp (Meta) ──webhook──► Supabase Edge Function
 
 ## Plan por fases (MVP)
 1. **Fase 1 – Responder:** webhook, Postgres (Supabase), transcripción de audios, agrupación de mensajes, base de conocimiento, bandeja compartida y paso a humano. Solo responde dudas.
+   - Hecho: webhook, media, transcripción, agrupación, respuesta con base de conocimiento, escalamiento (marca `humano_activo`), modo sombra (`BOT_MODO`), cron de reintentos.
+   - Pendiente: integración con Chatwoot (bandeja + notificación al escalar).
 2. **Fase 2 – Calificar:** ficha del lead, matriz intención × riesgo, check de `client_history`, prueba con historial y modo sombra.
 3. **Fase 3 – Cobrar y optimizar ads:** link de pago, validación de comprobantes, eventos a la Conversions API de Meta.
 4. **Fase 4 – Nutrir y aprender:** plantillas de nutrición y reactivación, formulario de incidentes del staff, registro de resultados para mejorar el few-shot.
